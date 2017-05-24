@@ -1,0 +1,5 @@
+comment = 'async response via redis'
+default_version = '1.0'
+superuser = true
+module_pathname = '$libdir/async_response'
+relocatable = true
