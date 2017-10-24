@@ -22,7 +22,7 @@ Datum async_response_tcp(PG_FUNCTION_ARGS) { // (integer, text, text, text)
   int32 port = PG_GETARG_INT32(0); 
   char *channel = text_to_cstring(PG_GETARG_TEXT_P(1));
   char *aspect = text_to_cstring(PG_GETARG_TEXT_P(2));
-  char *msg = text_to_cstring(PG_GETARG_TEXT_P(3));
+  char *msg = PG_ARGISNULL(3) ? NULL : text_to_cstring(PG_GETARG_TEXT_P(3));
   redisContext *ctx = redisConnectWithTimeout(DEFAULTHOST, port, timeout);
   return true_send( ctx, channel, aspect, msg);
 }
@@ -32,7 +32,7 @@ Datum async_response_socket(PG_FUNCTION_ARGS) { // (text, text, text, text)
   char *socket = text_to_cstring(PG_GETARG_TEXT_P(0));
   char *channel = text_to_cstring(PG_GETARG_TEXT_P(1));
   char *aspect = text_to_cstring(PG_GETARG_TEXT_P(2));
-  char *msg = text_to_cstring(PG_GETARG_TEXT_P(3));
+  char *msg = PG_ARGISNULL(3) ? NULL : text_to_cstring(PG_GETARG_TEXT_P(3));
   redisContext *ctx = redisConnectUnixWithTimeout(socket, timeout);
   return true_send( ctx, channel, aspect, msg);
 }
@@ -48,7 +48,11 @@ bool true_send( redisContext *ctx, char *channel, char *aspect, char *msg){
 		}
 		PG_RETURN_BOOL(false);
 	}
-	reply = redisCommand(ctx, "PUBLISH %s %s~%s", channel, aspect, msg );
+  if (msg == NULL) {
+    reply = redisCommand(ctx, "PUBLISH %s %s~NULL", channel, aspect );
+  }else{
+    reply = redisCommand(ctx, "PUBLISH %s %s~%s", channel, aspect, msg );
+  }
 	freeReplyObject(reply);
 	if (ctx->err) {
 		ereport(WARNING, (errcode(ERRCODE_WARNING), errmsg("failed to PUBLISH to redis: %s", ctx->errstr)));
