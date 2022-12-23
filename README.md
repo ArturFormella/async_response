@@ -1,4 +1,6 @@
-# async_response
+# Deprecated in favor of [notify_now](https://github.com/ArturFormella/notify_now)
+
+# ~~async_response~~
 Call
 
     boolean async_response(socket TEXT, channel TEXT, aspect TEXT, data TEXT)
